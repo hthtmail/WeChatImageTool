@@ -2,6 +2,7 @@
 # zhangxiaoyang.hit[at]gmail.com
 
 import re
+import os
 
 class WechatImageDecoder:
     def __init__(self, dat_file):
@@ -71,27 +72,39 @@ class WechatImageDecoder:
     def _decode_unknown_dat(self, dat_file):
         raise Exception('Unknown file type')
 
+def findAllFile(base):
+    for root, ds, fs in os.walk(base):
+        for f in fs:
+            if f.endswith('.dat'):
+                fullname = os.path.join(root, f)
+                yield fullname
 
 if __name__ == '__main__':
     import sys
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 2 and len(sys.argv) != 1:
         print('\n'.join([
             'Usage:',
-            '  python WechatImageDecoder.py [dat_file]',
+            '  python WechatImageDecoder.py [folder]',
             '',
-            'Example:',
-            '  # PC:',
-            '  python WechatImageDecoder.py 1234567890.dat',
-            '',
-            '  # Android:',
-            '  python WechatImageDecoder.py cache.data.10'
+            'Note: Default folder is current folder'
         ]))
         sys.exit(1)
 
-    _,  dat_file = sys.argv[:2]
-    try:
-        WechatImageDecoder(dat_file)
-    except Exception as e:
-        print(e)
-        sys.exit(1)
+    base = './'
+    if len(sys.argv) == 2:
+        _,  base = sys.argv[:2]
+
+    AllFiles = list(findAllFile(base))
+    total = len(AllFiles)
+    print("Found " + str(total) + " files")
+    count = 0
+    for f in AllFiles:
+        count = count + 1
+        print ("Converting[" + str(count) + "/" + str(total) + "]:" + f, end="")
+        try:
+            WechatImageDecoder(f)
+            print("......Done")
+        except Exception as e:
+            print("......Error")
+            continue
     sys.exit(0)
